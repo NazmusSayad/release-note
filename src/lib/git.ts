@@ -1,11 +1,12 @@
 import { gitCommitTargetSchema } from '@/config/config-schema.js'
-import { simpleGit, type SimpleGit } from 'simple-git'
+import { Prettify } from 'daily-code'
+import { DefaultLogFields, ListLogLine, type SimpleGit } from 'simple-git'
 import z from 'zod'
 
-async function resolveTargetHashes(
+export async function getGitCommitHash(
   git: SimpleGit,
   target: z.infer<typeof gitCommitTargetSchema>
-): Promise<string[]> {
+): Promise<string> {
   if ('tag' in target) {
     const regex = new RegExp(target.tag)
     const { all: tags } = await git.tags()
@@ -19,24 +20,22 @@ async function resolveTargetHashes(
       const hash = await git.revparse([tag])
       hashes.push(hash.trim())
     }
-    return hashes
+    return hashes[0]
   }
 
   if ('commit' in target) {
     const hash = await git.revparse([target.commit])
-    return [hash.trim()]
+    return hash.trim()
   }
 
   throw new Error('Invalid target: must contain either "tag" or "commit"')
 }
 
-export async function resolveGitCommitHashes(
-  cwd: string,
-  prev: z.infer<typeof gitCommitTargetSchema>,
-  current: z.infer<typeof gitCommitTargetSchema>
-): Promise<string[]> {
-  const git = simpleGit(cwd)
-  const fromHashes = await resolveTargetHashes(git, prev)
-  const toHashes = await resolveTargetHashes(git, current)
-  return [...fromHashes, ...toHashes]
+export async function getGitCommitsInfo(
+  git: SimpleGit,
+  prev: string,
+  current: string
+): Promise<Prettify<DefaultLogFields & ListLogLine>[]> {
+  const log = await git.log({ from: prev, to: current })
+  return [...log.all]
 }
