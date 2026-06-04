@@ -1,9 +1,9 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
+import { resolveProvider } from '@/config/resolve-config.js'
 import { SYSTEM_PROMPT } from '@/constants/prompts.js'
 import { resolveGitCommitHashes as getGitCommitHashes } from '@/lib/commit-hash.js'
 import * as ai from 'ai'
 import z from 'zod'
-import { resolveProvider } from '../config/resolve-config.js'
 
 export async function generateReleaseNote(
   cwd: string,
