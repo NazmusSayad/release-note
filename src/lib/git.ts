@@ -1,7 +1,14 @@
 import { gitCommitTargetSchema } from '@/config/config-schema.js'
 import { objectPick, Prettify } from 'daily-code'
-import { DefaultLogFields, ListLogLine, type SimpleGit } from 'simple-git'
+import { DefaultLogFields, type SimpleGit } from 'simple-git'
 import z from 'zod'
+
+export type GitCommitInfo = Prettify<
+  Pick<
+    DefaultLogFields,
+    'hash' | 'date' | 'message' | 'author_name' | 'author_email'
+  >
+>
 
 export async function getGitCommitHash(
   git: SimpleGit,
@@ -39,9 +46,9 @@ export async function getGitCommitsInfo(
   git: SimpleGit,
   prev: string,
   current: string
-) {
+): Promise<GitCommitInfo[]> {
   const log = await git.log({ from: prev, to: current })
-  return ([...log.all] as Prettify<DefaultLogFields & ListLogLine>[]).map((c) =>
+  return [...log.all].map((c) =>
     objectPick(c, ['hash', 'date', 'message', 'author_name', 'author_email'])
   )
 }
