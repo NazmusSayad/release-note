@@ -35,9 +35,7 @@ export function generateTools(
           '--pretty=format:',
           commithash,
         ])
-        logger?.(
-          `[check_diff] ${commithash} -> ${diff.length} chars of diff`
-        )
+        logger?.(`[check_diff] ${commithash} -> ${diff.length} chars of diff`)
         return diff
       },
     }),
@@ -65,9 +63,7 @@ export function generateTools(
         if (normalized === '') {
           const output = await git.raw(['ls-tree', commithash])
           const items = parseLsTree(output)
-          logger?.(
-            `[browse_code] root -> folder with ${items.length} item(s)`
-          )
+          logger?.(`[browse_code] root -> folder with ${items.length} item(s)`)
           return { type: 'folder', items }
         }
 
