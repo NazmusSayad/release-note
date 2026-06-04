@@ -11,7 +11,7 @@ export default defineConfig({
   tsconfig: './tsconfig.json',
   format: ['esm'] satisfies Format[],
 
-  dts: false,
+  dts: true,
   clean: true,
   sourcemap: true,
 
