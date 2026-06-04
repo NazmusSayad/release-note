@@ -10,7 +10,8 @@ When generating the release note, please follow these guidelines:
 - Group related changes together under appropriate headings (e.g., "New Features", "Bug Fixes", "Improvements").
 - Avoid including trivial changes that do not impact users (e.g., minor refactoring, formatting changes).
 - If there are breaking changes, clearly indicate them in a separate section and provide guidance on how to adapt to these changes.
-- Ensure that the release note is free of technical jargon and can be easily understood by a wide audience, including non-technical stakeholders.`
+- Ensure that the release note is free of technical jargon and can be easily understood by a wide audience, including non-technical stakeholders.
+- DO NOT use --- to separate sections, use ## for headings instead.`
 
 function buildCommitsPrompt(commits: GitCommitInfo[]) {
   return [
