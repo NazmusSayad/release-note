@@ -1,1 +1,4 @@
-throw new Error('NOT IMPLEMENTED YET! Working on it...')
+import * as generate from './generate/index.js'
+
+export default generate.generateReleaseNote
+export const releaseNote = generate.generateReleaseNote
