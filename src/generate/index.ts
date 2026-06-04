@@ -1,11 +1,10 @@
+import { generateConfigSchema } from '@/generate/config-schema.js'
 import { importNpm } from '@/lib/import-npm.js'
+import z from 'zod'
 
-type GenerateInput = {
-  current: string
-  from: string
-}
-
-export async function generateReleaseNote(options: GenerateInput) {
+export async function generateReleaseNote(
+  options: z.infer<typeof generateConfigSchema>
+): Promise<string> {
   const lodash = await importNpm('lodash')
-  console.log(lodash.default.camelCase('hello world'))
+  return lodash.default.camelCase('hello world')
 }
