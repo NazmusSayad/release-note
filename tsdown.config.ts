@@ -9,7 +9,7 @@ export default defineConfig({
 
   outDir: './dist',
   tsconfig: './tsconfig.json',
-  format: ['esm'] satisfies Format[],
+  format: ['esm', 'cjs'] satisfies Format[],
 
   dts: true,
   clean: true,
