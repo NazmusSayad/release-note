@@ -34,11 +34,7 @@ export async function generateReleaseNote(
     stopWhen: stepCountIs(maxSteps),
   })
 
-  console.log({
-    text: result.text,
-    output: result.output,
-    content: result.content,
-  })
+  console.log(JSON.stringify(result, null, 2))
 
   return {
     note: result.text,
