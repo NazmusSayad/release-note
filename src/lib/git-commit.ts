@@ -1,9 +1,35 @@
 import { gitCommitTargetSchema } from '@/config/config-schema.js'
+import { simpleGit } from 'simple-git'
 import z from 'zod'
 
 export async function resolveGitCommitHash(
   cwd: string,
   target: z.infer<typeof gitCommitTargetSchema>
 ): Promise<string[]> {
-  return []
+  const git = simpleGit(cwd)
+
+  if ('tag' in target) {
+    const regex = new RegExp(target.tag)
+    const { all: tags } = await git.tags()
+
+    const matched = tags.filter((tag) => regex.test(tag))
+    if (matched.length === 0) {
+      throw new Error(`No tags matched pattern: ${target.tag}`)
+    }
+
+    const hashes: string[] = []
+    for (const tag of matched) {
+      const hash = await git.revparse([tag])
+      hashes.push(hash.trim())
+    }
+
+    return hashes
+  }
+
+  if ('commit' in target) {
+    const hash = await git.revparse([target.commit])
+    return [hash.trim()]
+  }
+
+  throw new Error('Invalid target: must contain either "tag" or "commit"')
 }
