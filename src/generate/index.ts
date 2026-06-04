@@ -32,7 +32,7 @@ export async function generateReleaseNote(
 
   return {
     commits: commits,
-    text: result.text,
+    note: result.text,
     usage: result.usage,
     totalUsage: result.totalUsage,
   }
