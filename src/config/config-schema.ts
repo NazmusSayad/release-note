@@ -3,13 +3,12 @@ import { SUPPORTED_PROVIDERS } from '../constants/providers.js'
 
 const targetSchema = z.union([
   z.object({ tag: z.string().describe('Git tag regex') }),
-  z.object({ release: z.string().describe('Release regex') }),
   z.object({ commit: z.string().describe('Git commit hash') }),
 ])
 
 export const releaseConfigSchema = z.object({
   current: targetSchema.default({ tag: '.*' }),
-  prev: targetSchema.default({ release: '.*' }),
+  prev: targetSchema.default({ tag: '.*' }),
 })
 
 export const providerOptionsSchema = z.object({
