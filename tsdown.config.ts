@@ -1,6 +1,8 @@
 import { defineConfig, type Format } from 'tsdown'
 import packageJSON from './package.json' with { type: 'json' }
 
+console.log(process.env)
+
 export default defineConfig({
   entry: {
     bin: './src/bin.ts',
@@ -15,7 +17,7 @@ export default defineConfig({
 
   dts: true,
   clean: true,
-  sourcemap: true,
+  minify: 'dce-only',
 
   deps: {
     neverBundle: [
