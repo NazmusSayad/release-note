@@ -5,7 +5,7 @@ import { generateText, stepCountIs } from 'ai'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
 import { buildPrompt, SYSTEM_PROMPT } from './prompt.js'
-import { TOOLS } from './tools.js'
+import { generateTools } from './tools.js'
 
 export async function generateReleaseNote(
   cwd: string,
@@ -29,7 +29,7 @@ export async function generateReleaseNote(
     system: SYSTEM_PROMPT,
     prompt: buildPrompt(info),
 
-    tools: TOOLS,
+    tools: generateTools(git),
     stopWhen: stepCountIs(options.steps || info.length + 1),
   })
 

@@ -1,3 +1,6 @@
 import { ToolSet } from 'ai'
+import { SimpleGit } from 'simple-git'
 
-export const TOOLS: ToolSet = {}
+export function generateTools(git: SimpleGit): ToolSet {
+  return {}
+}
