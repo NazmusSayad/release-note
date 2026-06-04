@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
-import { program } from './args.js'
+import { createArgs } from './args.js'
 
+const program = createArgs()
 program.parse()
