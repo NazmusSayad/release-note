@@ -12,28 +12,28 @@ export async function generateReleaseNote(
   options: z.infer<typeof generateConfigSchema>
 ) {
   const git = simpleGit(cwd)
-  const info = await getGitCommitsInfo(git, options.match)
+  const commits = await getGitCommitsInfo(git, options.match)
 
   const provider = await resolveProvider(options.provider, options)
   if (!provider) {
     throw new Error(`Unsupported provider: ${options.provider}`)
   }
 
-  const maxSteps = options.steps ?? info.length + 1
+  const maxSteps = options.steps ?? (commits.length + 1) * 2
   const result = await generateText({
     model: provider(options.model),
 
-    prompt: buildUserPrompt(info).trim(),
+    prompt: buildUserPrompt(commits).trim(),
     system: buildSystemPrompt(maxSteps).trim(),
 
     tools: generateTools(git),
     stopWhen: stepCountIs(maxSteps),
   })
 
-  console.log(JSON.stringify(result, null, 2))
-
   return {
-    note: result.text,
-    commits: info,
+    commits: commits,
+    text: result.text,
+    usage: result.usage,
+    totalUsage: result.totalUsage,
   }
 }
