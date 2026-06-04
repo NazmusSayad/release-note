@@ -8,7 +8,7 @@
     "typecheck:watch": "tsc --noEmit --watch",
     "build": "tsdown --config ./tsdown.config.ts",
     "dev": "concurrently --names \"R,T\" --prefix-colors \"blue.dim,magenta.dim\" \"tsdown --config ./tsdown.config.ts --watch\" \"tsc --noEmit --watch\"",
-    "start": "tsx --watch ./src/index.ts"
+    "start": "run ./src/bin.ts"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -31,6 +31,7 @@
     }
   },
   "devDependencies": {
+    "@ai-sdk/openai": "^3.0.67",
     "@commander-js/extra-typings": "^15.0.0",
     "@eslint/compat": "^1.4.1",
     "@eslint/eslintrc": "^3.3.5",
@@ -38,8 +39,10 @@
     "@types/node": "^25.9.1",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
+    "ai": "^6.0.195",
     "commander": "^15.0.0",
     "concurrently": "^10.0.3",
+    "cross-spawn": "^7.0.6",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-check-file": "^3.3.1",
