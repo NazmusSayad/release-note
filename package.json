@@ -30,6 +30,9 @@
       ]
     }
   },
+  "peerDependencies": {
+    "@openrouter/ai-sdk-provider": "^2.9.0"
+  },
   "devDependencies": {
     "@ai-sdk/openai-compatible": "^2.0.48",
     "@commander-js/extra-typings": "^15.0.0",
