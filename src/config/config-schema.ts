@@ -1,5 +1,5 @@
+import { SUPPORTED_PROVIDERS } from '@/constants/providers.js'
 import { z } from 'zod'
-import { SUPPORTED_PROVIDERS } from '../constants/providers.js'
 
 export const gitCommitTargetSchema = z.union([
   z.object({ tag: z.string().describe('Git tag regex') }),
