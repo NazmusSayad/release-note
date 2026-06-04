@@ -36,7 +36,5 @@ export function buildPrompt(commits: GitCommitInfo[]) {
       ])
       .flat()
       .join('\n'),
-
-    'Based on the above commits, generate a concise and informative release note that highlights the key changes, new features, bug fixes, and any important information that users should be aware of. The release note should be well-structured and easy to read.',
   ].join('\n\n')
 }
