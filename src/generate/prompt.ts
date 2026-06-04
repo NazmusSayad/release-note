@@ -21,7 +21,9 @@ export function buildPrompt(commits: GitCommitInfo[]) {
 
     commits
       .map((c) => [
-        `- ${c.hash} (Timestamp: ${c.date}; Author: ${c.author_name} <${c.author_email}>)`,
+        `- Commit: ${c.hash}`,
+        `  - Timestamp: ${c.date}`,
+        `  - Author: ${c.author_name} <${c.author_email}>`,
         `  > ${c.message}`,
       ])
       .flat()
