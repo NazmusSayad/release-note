@@ -1,7 +1,6 @@
 import { Provider } from 'ai'
 import chalk from 'chalk'
 import fs from 'fs'
-import { parse } from 'jsonc-parser'
 import path from 'path'
 import z from 'zod'
 import { generateConfigSchema, providerOptionsSchema } from './config-schema.js'
@@ -25,7 +24,7 @@ export async function resolveConfig(
 
       try {
         const configContent = await fs.promises.readFile(fullPath, 'utf8')
-        return generateConfigSchema.parse(parse(configContent))
+        return generateConfigSchema.parse(JSON.parse(configContent))
       } catch {
         console.error(chalk.red(`Error parsing config file: ${fullPath}`))
         throw new Error(`Invalid config file: ${fullPath}`)

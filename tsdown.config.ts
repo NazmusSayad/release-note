@@ -10,7 +10,7 @@ export default defineConfig({
   outDir: './dist',
   tsconfig: './tsconfig.json',
 
-  target: 'ES2022',
+  target: 'ES2020',
   format: ['esm', 'cjs'] satisfies Format[],
 
   dts: true,
