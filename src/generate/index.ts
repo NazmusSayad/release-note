@@ -4,7 +4,7 @@ import { getGitCommitHash, getGitCommitsInfo } from '@/lib/git.js'
 import { generateText, stepCountIs } from 'ai'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
-import { buildPrompt, SYSTEM_PROMPT } from './prompt.js'
+import { buildSystemPrompt, buildUserPrompt } from './prompt.js'
 import { generateTools } from './tools.js'
 
 export async function generateReleaseNote(
@@ -23,14 +23,15 @@ export async function generateReleaseNote(
     throw new Error(`Unsupported provider: ${options.provider}`)
   }
 
+  const maxSteps = options.steps ?? info.length + 1
   const result = await generateText({
     model: provider(options.model),
 
-    system: SYSTEM_PROMPT.trim(),
-    prompt: buildPrompt(info).trim(),
+    prompt: buildUserPrompt(info).trim(),
+    system: buildSystemPrompt(maxSteps).trim(),
 
     tools: generateTools(git),
-    stopWhen: stepCountIs(options.steps || info.length + 1),
+    stopWhen: stepCountIs(maxSteps),
   })
 
   console.log({
