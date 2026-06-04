@@ -16,12 +16,13 @@ The release notes should be concise, informative, and highlight the key changes,
 
 
 ## Output format:
-- Group related changes together under appropriate headings (e.g., "New Features", "Bug Fixes", "Improvements", "Breaking Changes").
 - Use bullet points to list individual changes for better readability.
+- Group related changes together under appropriate headings (e.g., "New Features", "Bug Fixes", "Improvements", "Breaking Changes").
 - If there are breaking changes, clearly indicate them in a separate section and provide guidance on how to adapt to these changes from a user perspective.
+- DO NOT start with "Here is the notes...", "Here are the changes...", "Let me generate..."; just directly write the content of the release note.
 - DO NOT use a top-level title to wrap the content as "Release Note"; just directly write the sections.
-- DO NOT use --- to separate sections, use ## for headings instead.
 - Output ONLY the release note content, with no preamble, explanation, or commentary.
+- DO NOT use --- to separate sections, use ## for headings instead.
 `
 }
 
