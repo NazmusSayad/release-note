@@ -1,3 +1,1 @@
-export default 'Hello World'
-export const foo = 'bar'
-export const baz = 42
+throw new Error('NOT IMPLEMENTED YET! Working on it...')
