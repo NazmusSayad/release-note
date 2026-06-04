@@ -21,7 +21,7 @@ export async function createArgs() {
         typeof options.config === 'string' ? [options.config] : undefined
 
       const config = await resolveConfig(resolvedCwd, resolvedConfigPath)
-      const result = await generateReleaseNote({ ...config })
+      const result = await generateReleaseNote(resolvedCwd, { ...config })
 
       if (typeof options.outFile === 'string') {
         const outPath = path.join(resolvedCwd, options.outFile)
