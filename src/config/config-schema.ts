@@ -1,14 +1,14 @@
 import { z } from 'zod'
 import { SUPPORTED_PROVIDERS } from '../constants/providers.js'
 
-const targetSchema = z.union([
+export const gitCommitTargetSchema = z.union([
   z.object({ tag: z.string().describe('Git tag regex') }),
   z.object({ commit: z.string().describe('Git commit hash') }),
 ])
 
 export const releaseConfigSchema = z.object({
-  current: targetSchema.default({ tag: '.*' }),
-  prev: targetSchema.default({ tag: '.*' }),
+  current: gitCommitTargetSchema.default({ tag: '.*' }),
+  prev: gitCommitTargetSchema.default({ tag: '.*' }),
 })
 
 export const providerOptionsSchema = z.object({
@@ -24,6 +24,8 @@ export const providerOptionsSchema = z.object({
 })
 
 export const generateConfigSchema = z
-  .object({ model: z.string() })
+  .object({
+    model: z.string().min(1),
+  })
   .extend(releaseConfigSchema.shape)
   .extend(providerOptionsSchema.shape)

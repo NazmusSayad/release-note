@@ -60,7 +60,7 @@ function resolveApiKey(
 export async function resolveProvider(
   name: string,
   options: z.infer<typeof providerOptionsSchema>
-): Promise<Provider['languageModel']> {
+): Promise<Provider['languageModel'] | null> {
   const resolvedApiKey = resolveApiKey(options.apiKeyEnv)
 
   if (name === '@ai-sdk/openai-compatible') {
@@ -83,15 +83,15 @@ export async function resolveProvider(
   }
 
   const provider = PROVIDERS_FACTORY[name]
-  if (!provider) {
-    throw new Error(`Unsupported provider: "${name}"`)
+  if (provider) {
+    const mod = await import(name)
+    return mod[provider.create]({
+      apiKey: resolvedApiKey,
+      baseURL: options?.apiUrl,
+      headers: options?.headers,
+      ...options?.options,
+    })
   }
 
-  const mod = await import(name)
-  return mod[provider.create]({
-    apiKey: resolvedApiKey,
-    baseURL: options?.apiUrl,
-    headers: options?.headers,
-    ...options?.options,
-  })
+  return null
 }
