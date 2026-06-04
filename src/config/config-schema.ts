@@ -9,7 +9,7 @@ const targetSchema = z.union([
 
 export const releaseConfigSchema = z.object({
   current: targetSchema.default({ tag: '.*' }),
-  prev: targetSchema.default({ tag: '.*' }),
+  prev: targetSchema.default({ release: '.*' }),
 })
 
 export const providerOptionsSchema = z.object({
