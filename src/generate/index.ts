@@ -7,9 +7,13 @@ import z from 'zod'
 import { buildSystemPrompt, buildUserPrompt } from './prompt.js'
 import { generateTools } from './tools.js'
 
+type GenerateOptions = z.infer<typeof generateConfigSchema> & {
+  logger?: (...args: unknown[]) => void
+}
+
 export async function generateReleaseNote(
   cwd: string,
-  options: z.infer<typeof generateConfigSchema>
+  options: GenerateOptions
 ) {
   const git = simpleGit(cwd)
   const commits = await getGitCommitsInfo(git, options.match)
@@ -26,7 +30,7 @@ export async function generateReleaseNote(
     prompt: buildUserPrompt(commits).trim(),
     system: buildSystemPrompt(maxSteps).trim(),
 
-    tools: generateTools(git),
+    tools: generateTools(git, options.logger),
     stopWhen: stepCountIs(maxSteps),
   })
 

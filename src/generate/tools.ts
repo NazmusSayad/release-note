@@ -13,7 +13,10 @@ function parseLsTree(output: string): string[] {
     })
 }
 
-export function generateTools(git: SimpleGit): ToolSet {
+export function generateTools(
+  git: SimpleGit,
+  logger?: (...args: unknown[]) => void
+): ToolSet {
   return {
     check_diff: tool({
       description:
@@ -26,14 +29,14 @@ export function generateTools(git: SimpleGit): ToolSet {
           ),
       }),
       execute: async ({ commithash }) => {
-        console.log(chalk.cyan(`[check_diff] fetching diff for ${commithash}`))
+        logger?.(chalk.cyan(`[check_diff] fetching diff for ${commithash}`))
         const diff = await git.raw([
           'show',
           '--no-color',
           '--pretty=format:',
           commithash,
         ])
-        console.log(
+        logger?.(
           chalk.green(
             `[check_diff] ${commithash} -> ${diff.length} chars of diff`
           )
@@ -58,7 +61,7 @@ export function generateTools(git: SimpleGit): ToolSet {
       }),
       execute: async ({ commithash, path }) => {
         const normalized = path.replace(/^\/+|\/+$/g, '')
-        console.log(
+        logger?.(
           chalk.cyan(
             `[browse_code] ${commithash} @ ${normalized === '' ? '/' : normalized}`
           )
@@ -67,7 +70,7 @@ export function generateTools(git: SimpleGit): ToolSet {
         if (normalized === '') {
           const output = await git.raw(['ls-tree', commithash])
           const items = parseLsTree(output)
-          console.log(
+          logger?.(
             chalk.green(
               `[browse_code] root -> folder with ${items.length} item(s)`
             )
@@ -80,14 +83,14 @@ export function generateTools(git: SimpleGit): ToolSet {
         try {
           objectType = (await git.raw(['cat-file', '-t', ref])).trim()
         } catch {
-          console.log(chalk.yellow(`[browse_code] ${ref} does not exist`))
+          logger?.(chalk.yellow(`[browse_code] ${ref} does not exist`))
           return { error: "doesn't exists" }
         }
 
         if (objectType === 'tree') {
           const output = await git.raw(['ls-tree', ref])
           const items = parseLsTree(output)
-          console.log(
+          logger?.(
             chalk.green(
               `[browse_code] ${normalized} -> folder with ${items.length} item(s)`
             )
@@ -97,7 +100,7 @@ export function generateTools(git: SimpleGit): ToolSet {
 
         if (objectType === 'blob') {
           const content = await git.show(ref)
-          console.log(
+          logger?.(
             chalk.green(
               `[browse_code] ${normalized} -> file with ${content.length} chars`
             )
@@ -105,7 +108,7 @@ export function generateTools(git: SimpleGit): ToolSet {
           return { type: 'file', content }
         }
 
-        console.log(
+        logger?.(
           chalk.yellow(
             `[browse_code] ${ref} has unsupported object type "${objectType}"`
           )
