@@ -1,11 +1,20 @@
-import { generateConfigSchema } from '@/generate/config-schema.js'
-import { importNpm } from '@/lib/import-npm.js'
+import { generateConfigSchema } from '@/config/config-schema.js'
+import * as ai from 'ai'
 import z from 'zod'
+import { resolveProvider } from './resolve-config.js'
 
 export async function generateReleaseNote(
   cwd: string,
   options: z.infer<typeof generateConfigSchema>
 ): Promise<string> {
-  const lodash = await importNpm('lodash')
-  return lodash.default.camelCase('hello world')
+  const provider = await resolveProvider(options.provider, options)
+
+  const response = await ai.generateText({
+    model: provider(options.model),
+    prompt: 'DO IT',
+    system:
+      'You are a helpful assistant that generates release notes based on the commit history of a project.',
+  })
+
+  return response.text
 }
