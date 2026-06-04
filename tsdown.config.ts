@@ -9,14 +9,13 @@ export default defineConfig({
 
   outDir: './dist',
   tsconfig: './tsconfig.json',
+
+  target: 'ES2022',
   format: ['esm', 'cjs'] satisfies Format[],
 
   dts: true,
   clean: true,
   sourcemap: true,
-
-  target: 'ES6',
-  minify: 'dce-only',
 
   deps: {
     neverBundle: [
