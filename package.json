@@ -8,7 +8,7 @@
     "typecheck:watch": "tsc --noEmit --watch",
     "build": "tsdown --config ./tsdown.config.ts",
     "dev": "concurrently --names \"R,T\" --prefix-colors \"blue.dim,magenta.dim\" \"tsdown --config ./tsdown.config.ts --watch\" \"tsc --noEmit --watch\"",
-    "start": "tsx ./src/start.ts"
+    "start": "tsx --watch ./src/start.ts"
   },
   "type": "module",
   "main": "./dist/index.cjs",
