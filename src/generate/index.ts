@@ -8,7 +8,7 @@ import { resolveProvider } from '../config/resolve-config.js'
 export async function generateReleaseNote(
   cwd: string,
   options: z.infer<typeof generateConfigSchema>
-): Promise<string> {
+) {
   const [currentVersion] = await resolveGitCommitHash(cwd, options.current)
   if (!currentVersion) {
     throw new Error(`Could not resolve current version: ${options.current}`)
@@ -30,5 +30,7 @@ export async function generateReleaseNote(
     prompt: 'DO IT',
   })
 
-  return response.text
+  return {
+    note: response.text,
+  }
 }

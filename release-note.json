@@ -1,0 +1,4 @@
+{
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "provider": "@openrouter/ai-sdk-provider"
+}

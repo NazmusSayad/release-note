@@ -25,10 +25,10 @@ export async function createArgs() {
 
       if (typeof options.outFile === 'string') {
         const outPath = path.join(resolvedCwd, options.outFile)
-        await fs.promises.writeFile(outPath, result, 'utf8')
+        await fs.promises.writeFile(outPath, result.note, 'utf8')
         console.log(`Release note written to ${outPath}`)
       } else {
-        process.stdout.write(result)
+        process.stdout.write(result.note)
       }
     })
 
