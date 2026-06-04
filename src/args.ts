@@ -1,14 +1,24 @@
 import { Command } from '@commander-js/extra-typings'
+import { resolveConfig } from './config/resolve-config.js'
 import { generateReleaseNote } from './generate/index.js'
 
-export function createArgs(configFile?: string) {
+export async function createArgs(cwd: string = process.cwd()) {
+  const config = await resolveConfig(cwd)
   const program = new Command('release-note')
 
   program
     .command('generate')
     .description('Generate release notes between two versions')
-    .option('--current <string>', 'Current version tag (e.g., v1.2.3)', 'tag:*')
-    .option('--from <string>', 'Starting version tag (e.g., v1.0.0)', 'tag:*')
+    .option(
+      '--current <string>',
+      'Current version tag (e.g., v1.2.3)',
+      config.current
+    )
+    .option(
+      '--from <string>',
+      'Starting version tag (e.g., v1.0.0)',
+      config.from
+    )
     .action((options) => {
       void generateReleaseNote(options)
     })

@@ -2,5 +2,4 @@
 
 import { createArgs } from './args.js'
 
-const program = createArgs()
-program.parse()
+void createArgs().then((p) => p.parse())
