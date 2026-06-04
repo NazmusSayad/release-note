@@ -26,6 +26,7 @@ export const providerOptionsSchema = z.object({
 export const generateConfigSchema = z
   .object({
     model: z.string().min(1),
+    steps: z.number().int().positive().optional(),
   })
   .extend(releaseConfigSchema.shape)
   .extend(providerOptionsSchema.shape)

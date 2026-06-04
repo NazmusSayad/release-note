@@ -1,6 +1,6 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
 import { SYSTEM_PROMPT } from '@/constants/prompts.js'
-import { resolveGitCommitHash } from '@/lib/git-commit.js'
+import { resolveGitCommitHashes as getGitCommitHashes } from '@/lib/commit-hash.js'
 import * as ai from 'ai'
 import z from 'zod'
 import { resolveProvider } from '../config/resolve-config.js'
@@ -9,14 +9,9 @@ export async function generateReleaseNote(
   cwd: string,
   options: z.infer<typeof generateConfigSchema>
 ) {
-  const [currentVersion] = await resolveGitCommitHash(cwd, options.current)
-  if (!currentVersion) {
+  const hashes = await getGitCommitHashes(cwd, options.prev, options.current)
+  if (hashes.length < 2) {
     throw new Error(`Could not resolve current version: ${options.current}`)
-  }
-
-  const [_, prevVersion] = await resolveGitCommitHash(cwd, options.prev)
-  if (!prevVersion) {
-    throw new Error(`Could not resolve previous version: ${options.prev}`)
   }
 
   const provider = await resolveProvider(options.provider, options)
@@ -25,7 +20,7 @@ export async function generateReleaseNote(
   }
 
   const response = await ai.generateText({
-    model: provider(options.model),
+    model: provider('wrong-model'),
     system: SYSTEM_PROMPT,
     prompt: 'DO IT',
   })
