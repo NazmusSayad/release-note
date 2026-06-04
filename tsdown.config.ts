@@ -21,7 +21,7 @@ export default defineConfig({
   deps: {
     neverBundle: [
       /node:/gim,
-      ...getExternal((packageJSON as any).devDependencies),
+      ...getExternal((packageJSON as any).dependencies),
       ...getExternal((packageJSON as any).peerDependencies),
     ],
   },
