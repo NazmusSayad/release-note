@@ -1,11 +1,10 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
 import { resolveProvider } from '@/config/resolve-config.js'
-import { SYSTEM_PROMPT } from '@/constants/prompts.js'
 import { getGitCommitHash, getGitCommitsInfo } from '@/lib/git.js'
 import { generateText, stepCountIs } from 'ai'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
-import { buildPrompt } from './prompt.js'
+import { buildPrompt, SYSTEM_PROMPT } from './prompt.js'
 import { TOOLS } from './tools.js'
 
 export async function generateReleaseNote(
