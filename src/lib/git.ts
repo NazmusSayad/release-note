@@ -10,18 +10,21 @@ export async function getGitCommitHash(
 ): Promise<string> {
   if ('tag' in target) {
     const regex = new RegExp(target.tag)
-    const { all: tags } = await git.tags()
+    const { all: tags } = await git.tags({ '--sort': '-v:refname' })
     const matched = tags.filter((tag) => regex.test(tag))
     if (matched.length === 0) {
       throw new Error(`No tags matched pattern: ${target.tag}`)
     }
 
-    const hashes: string[] = []
-    for (const tag of matched) {
-      const hash = await git.revparse([tag])
-      hashes.push(hash.trim())
+    if (offset < 0 || offset >= matched.length) {
+      throw new Error(
+        `Offset ${offset} out of range: only ${matched.length} tag(s) matched pattern ${target.tag}`
+      )
     }
-    return hashes[0]
+
+    const tag = matched[offset]
+    const hash = await git.revparse([tag])
+    return hash.trim()
   }
 
   if ('commit' in target) {
