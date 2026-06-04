@@ -1,7 +1,6 @@
 {
   "name": "release-note",
   "version": "0.0.0",
-  "sideEffects": false,
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -11,8 +10,12 @@
     "dev": "concurrently --names \"R,T\" --prefix-colors \"blue.dim,magenta.dim\" \"tsdown --config ./tsdown.config.ts --watch\" \"tsc --noEmit --watch\"",
     "start": "tsx --watch ./src/index.ts"
   },
+  "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
+  "bin": {
+    "release-note": "./dist/bin.mjs"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -28,12 +31,14 @@
     }
   },
   "devDependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
     "@eslint/compat": "^1.4.1",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
     "@types/node": "^25.9.1",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
+    "commander": "^15.0.0",
     "concurrently": "^10.0.3",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
