@@ -1,15 +1,15 @@
-import { type InternalModuleFormat } from 'rolldown'
-import { defineConfig } from 'tsdown'
+import { defineConfig, Format } from 'tsdown'
 import packageJSON from './package.json' with { type: 'json' }
 
 export default defineConfig({
   entry: {
+    bin: './src/bin.ts',
     index: './src/index.ts',
   },
 
   outDir: './dist',
   tsconfig: './tsconfig.json',
-  format: ['cjs', 'es'] satisfies InternalModuleFormat[],
+  format: ['cjs', 'es'] satisfies Format[],
 
   dts: true,
   sourcemap: true,
