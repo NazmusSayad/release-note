@@ -15,23 +15,18 @@ When generating the release note, please follow these guidelines:
 - DO NOT use a header to express the content as release note, just directly write the sections.
 - DO NOT use --- to separate sections, use ## for headings instead.`
 
-function buildCommitsPrompt(commits: GitCommitInfo[]) {
-  return [
-    commits.map((c) =>
-      [
-        `- ${c.hash} (Timestamp: ${c.date}; Author: ${c.author_name} <${c.author_email}>)`,
-        `  > ${c.message}`,
-      ].join('\n')
-    ),
-  ]
-    .flat()
-    .join('\n')
-}
-
 export function buildPrompt(commits: GitCommitInfo[]) {
   return [
     'Here are the commits between the specified versions:',
-    buildCommitsPrompt(commits),
+
+    commits
+      .map((c) => [
+        `- ${c.hash} (Timestamp: ${c.date}; Author: ${c.author_name} <${c.author_email}>)`,
+        `  > ${c.message}`,
+      ])
+      .flat()
+      .join('\n'),
+
     'Based on the above commits, generate a concise and informative release note that highlights the key changes, new features, bug fixes, and any important information that users should be aware of. The release note should be well-structured and easy to read.',
   ].join('\n\n')
 }
