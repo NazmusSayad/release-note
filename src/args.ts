@@ -1,8 +1,8 @@
 import { Command } from '@commander-js/extra-typings'
 import fs from 'fs'
 import path from 'path'
+import { resolveConfig } from './config/resolve-config.js'
 import { generateReleaseNote } from './generate/index.js'
-import { resolveConfig } from './generate/resolve-config.js'
 
 export async function createArgs() {
   const program = new Command('release-note')

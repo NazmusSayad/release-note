@@ -4,10 +4,7 @@ import fs from 'fs'
 import { parse } from 'jsonc-parser'
 import path from 'path'
 import z from 'zod'
-import {
-  generateConfigSchema,
-  providerOptionsSchema,
-} from '../config/config-schema.js'
+import { generateConfigSchema, providerOptionsSchema } from './config-schema.js'
 
 const CONFIG_PATHS = [
   'release-note.json',
