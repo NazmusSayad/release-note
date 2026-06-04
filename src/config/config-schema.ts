@@ -24,6 +24,6 @@ export const generateConfigSchema = z
   .object({
     match: gitCommitTargetSchema.default({ tag: '.*' }),
     model: z.string().min(1),
-    steps: z.number().int().positive().optional(),
+    steps: z.number().int().min(5).max(500).optional(),
   })
   .extend(providerOptionsSchema.shape)
