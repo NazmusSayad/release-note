@@ -31,9 +31,12 @@ export async function generateReleaseNote(
   })
 
   return {
-    commits: commits,
+    commits,
     note: result.text,
-    usage: result.usage,
-    totalUsage: result.totalUsage,
+
+    provider: {
+      usage: result.totalUsage,
+      response: result.response,
+    },
   }
 }
