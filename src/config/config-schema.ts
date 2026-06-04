@@ -11,7 +11,9 @@ export const providerOptionsSchema = z.object({
   apiKeyEnv: z.union([z.string(), z.array(z.string())]).optional(),
 
   provider: z
-    .enum(Object.keys(SUPPORTED_PROVIDERS))
+    .enum(
+      Object.keys(SUPPORTED_PROVIDERS) as (keyof typeof SUPPORTED_PROVIDERS)[]
+    )
     .default('@ai-sdk/openai-compatible'),
 
   headers: z.record(z.string(), z.string()).optional(),
