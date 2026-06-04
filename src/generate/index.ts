@@ -1,6 +1,7 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
 import { resolveProvider } from '@/config/resolve-config.js'
 import { SYSTEM_PROMPT } from '@/constants/prompts.js'
+import { getGitCommitsInfo } from '@/lib/commit-details.js'
 import { resolveGitCommitHashes as getGitCommitHashes } from '@/lib/commit-hash.js'
 import * as ai from 'ai'
 import z from 'zod'
@@ -13,6 +14,9 @@ export async function generateReleaseNote(
   if (hashes.length < 2) {
     throw new Error(`Could not resolve current version: ${options.current}`)
   }
+
+  const info = await getGitCommitsInfo(cwd, hashes.at(0)!, hashes.at(-1)!)
+  console.log(info)
 
   const provider = await resolveProvider(options.provider, options)
   if (!provider) {

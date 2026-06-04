@@ -1,21 +1,12 @@
-import simpleGit from 'simple-git'
+import { Prettify } from 'daily-code'
+import { DefaultLogFields, ListLogLine, simpleGit } from 'simple-git'
 
-type GitCommitDetails = {
-  hash: string
-  email: string
-  message: string
-  time: string
-  diff: string
-}
-
-export async function getGitCommitDetails(
+export async function getGitCommitsInfo(
   cwd: string,
-  hash: string
-): Promise<GitCommitDetails> {
+  prev: string,
+  current: string
+): Promise<Prettify<DefaultLogFields & ListLogLine>[]> {
   const git = simpleGit(cwd)
-  const log = await git.log({ from: hash, to: hash })
-  if (log.total === 0) {
-    throw new Error(`No commit found for hash: ${hash}`)
-  }
-  return log.latest as GitCommitDetails
+  const log = await git.log({ from: prev, to: current })
+  return [...log.all]
 }
