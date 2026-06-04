@@ -3,8 +3,8 @@ import { resolveConfig } from './config/resolve-config.js'
 import { generateReleaseNote } from './generate/index.js'
 
 export async function createArgs(cwd: string = process.cwd()) {
-  const config = await resolveConfig(cwd)
   const program = new Command('release-note')
+  const config = await resolveConfig(cwd)
 
   program
     .command('generate')
