@@ -23,18 +23,24 @@ export async function generateReleaseNote(
     throw new Error(`Unsupported provider: ${options.provider}`)
   }
 
-  const response = await generateText({
+  const result = await generateText({
     model: provider(options.model),
 
-    system: SYSTEM_PROMPT,
-    prompt: buildPrompt(info),
+    system: SYSTEM_PROMPT.trim(),
+    prompt: buildPrompt(info).trim(),
 
     tools: generateTools(git),
     stopWhen: stepCountIs(options.steps || info.length + 1),
   })
 
+  console.log({
+    text: result.text,
+    output: result.output,
+    content: result.content,
+  })
+
   return {
-    note: response.text,
+    note: result.text,
     commits: info,
   }
 }

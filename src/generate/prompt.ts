@@ -34,5 +34,6 @@ export function buildPrompt(commits: GitCommitInfo[]) {
   )
 
   return `Here are the commits related to the release:
-${commitsList.join('\n')}`
+${commitsList.join('\n')}
+`
 }
