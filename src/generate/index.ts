@@ -9,14 +9,14 @@ export async function generateReleaseNote(
   cwd: string,
   options: z.infer<typeof generateConfigSchema>
 ): Promise<string> {
-  const prevVersion = await resolveGitCommitHash(cwd, options.prev)
-  if (!prevVersion) {
-    throw new Error(`Could not resolve previous version: ${options.prev}`)
-  }
-
-  const currentVersion = await resolveGitCommitHash(cwd, options.current)
+  const [currentVersion] = await resolveGitCommitHash(cwd, options.current)
   if (!currentVersion) {
     throw new Error(`Could not resolve current version: ${options.current}`)
+  }
+
+  const [_, prevVersion] = await resolveGitCommitHash(cwd, options.prev)
+  if (!prevVersion) {
+    throw new Error(`Could not resolve previous version: ${options.prev}`)
   }
 
   const provider = await resolveProvider(options.provider, options)

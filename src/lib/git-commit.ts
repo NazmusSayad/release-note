@@ -4,4 +4,6 @@ import z from 'zod'
 export async function resolveGitCommitHash(
   cwd: string,
   target: z.infer<typeof gitCommitTargetSchema>
-): Promise<string | null> {}
+): Promise<string[]> {
+  return []
+}
