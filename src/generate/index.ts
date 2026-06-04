@@ -1,6 +1,6 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
 import { resolveProvider } from '@/config/resolve-config.js'
-import { getGitCommitHash, getGitCommitsInfo } from '@/lib/git.js'
+import { getGitCommitsInfo } from '@/lib/git.js'
 import { generateText, stepCountIs } from 'ai'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
@@ -12,11 +12,7 @@ export async function generateReleaseNote(
   options: z.infer<typeof generateConfigSchema>
 ) {
   const git = simpleGit(cwd)
-  const info = await getGitCommitsInfo(
-    git,
-    await getGitCommitHash(git, options.prev, 1),
-    await getGitCommitHash(git, options.current)
-  )
+  const info = await getGitCommitsInfo(git, options.match)
 
   const provider = await resolveProvider(options.provider, options)
   if (!provider) {

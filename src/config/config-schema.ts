@@ -6,11 +6,6 @@ export const gitCommitTargetSchema = z.union([
   z.object({ commit: z.string().describe('Git commit hash') }),
 ])
 
-export const releaseConfigSchema = z.object({
-  current: gitCommitTargetSchema.default({ tag: '.*' }),
-  prev: gitCommitTargetSchema.default({ tag: '.*' }),
-})
-
 export const providerOptionsSchema = z.object({
   apiUrl: z.string().optional(),
   apiKeyEnv: z.union([z.string(), z.array(z.string())]).optional(),
@@ -25,8 +20,8 @@ export const providerOptionsSchema = z.object({
 
 export const generateConfigSchema = z
   .object({
+    match: gitCommitTargetSchema.default({ tag: '.*' }),
     model: z.string().min(1),
     steps: z.number().int().positive().optional(),
   })
-  .extend(releaseConfigSchema.shape)
   .extend(providerOptionsSchema.shape)
