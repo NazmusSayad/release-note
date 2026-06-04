@@ -1,4 +1,5 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
+import { SYSTEM_PROMPT } from '@/constants/prompts.js'
 import * as ai from 'ai'
 import z from 'zod'
 import { resolveProvider } from '../config/resolve-config.js'
@@ -11,9 +12,8 @@ export async function generateReleaseNote(
 
   const response = await ai.generateText({
     model: provider(options.model),
+    system: SYSTEM_PROMPT,
     prompt: 'DO IT',
-    system:
-      'You are a helpful assistant that generates release notes based on the commit history of a project.',
   })
 
   return response.text

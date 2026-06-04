@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SUPPORTED_PROVIDERS } from './providers.js'
+import { SUPPORTED_PROVIDERS } from '../constants/providers.js'
 
 export const providerOptionsSchema = z.object({
   apiUrl: z.string().optional(),
