@@ -10,7 +10,7 @@ export type GitCommitInfo = Prettify<
   >
 >
 
-export async function getGitCommitHash(
+async function getGitCommitHash(
   git: SimpleGit,
   target: z.infer<typeof gitCommitTargetSchema>,
   offset = 0
@@ -44,10 +44,11 @@ export async function getGitCommitHash(
 
 export async function getGitCommitsInfo(
   git: SimpleGit,
-  prev: string,
-  current: string
+  match: z.infer<typeof gitCommitTargetSchema>
 ): Promise<GitCommitInfo[]> {
-  const log = await git.log({ from: prev, to: current })
+  const latest = await getGitCommitHash(git, match, 1)
+  const current = await getGitCommitHash(git, match, 0)
+  const log = await git.log({ from: latest, to: current })
   return [...log.all].map((c) =>
     objectPick(c, ['hash', 'date', 'message', 'author_name', 'author_email'])
   )
