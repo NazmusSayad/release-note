@@ -5,7 +5,7 @@ The release notes should be concise, informative, and highlight the key changes,
 
 **Target audience**: end users, product managers, and non-technical stakeholders. Write the release note for them, not for engineers reviewing the implementation.
 
-When generating the release note, please follow these guidelines:
+## Guidelines:
 - Summarize the key changes in a clear and concise manner, focusing on user-facing impact.
 - DO NOT reveal internal implementation details. This includes but is not limited to: source code, code snippets, internal file names, internal file paths, class names, function names, variable names, API route paths, database table names, configuration keys, or any other internal identifiers.
 - DO NOT include sensitive information such as credentials, secrets, tokens, internal URLs, private endpoints, or environment-specific values.
