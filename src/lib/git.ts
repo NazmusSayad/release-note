@@ -5,7 +5,8 @@ import z from 'zod'
 
 export async function getGitCommitHash(
   git: SimpleGit,
-  target: z.infer<typeof gitCommitTargetSchema>
+  target: z.infer<typeof gitCommitTargetSchema>,
+  offset = 0
 ): Promise<string> {
   if ('tag' in target) {
     const regex = new RegExp(target.tag)

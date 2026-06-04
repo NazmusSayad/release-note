@@ -13,7 +13,7 @@ export async function generateReleaseNote(
   const git = simpleGit(cwd)
   const info = await getGitCommitsInfo(
     git,
-    await getGitCommitHash(git, options.prev),
+    await getGitCommitHash(git, options.prev, 1),
     await getGitCommitHash(git, options.current)
   )
 
