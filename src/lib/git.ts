@@ -12,13 +12,17 @@ export type GitCommitInfo = Prettify<
 
 async function getGitCommitHash(
   git: SimpleGit,
-  target: z.infer<typeof gitCommitTargetSchema>,
-  offset = 0
+  target: { tag: string | RegExp; offset?: number } | { commit: string },
+  defaultOffset: number
 ): Promise<string> {
   if ('tag' in target) {
-    const regex = new RegExp(target.tag)
-    const { all: tags } = await git.tags({ '--sort': '-v:refname' })
-    const matched = tags.filter((tag) => regex.test(tag))
+    const offset = target.offset ?? defaultOffset
+    const targetRegex =
+      target.tag instanceof RegExp ? target.tag : new RegExp(target.tag)
+
+    const tags = await git.tags({ '--sort': '-v:refname' })
+
+    const matched = tags.all.filter((tag) => targetRegex.test(tag))
     if (matched.length === 0) {
       throw new Error(`No tags matched pattern: ${target.tag}`)
     }
@@ -46,9 +50,20 @@ export async function getGitCommitsInfo(
   git: SimpleGit,
   match: z.infer<typeof gitCommitTargetSchema>
 ): Promise<GitCommitInfo[]> {
-  const latest = await getGitCommitHash(git, match, 1)
-  const current = await getGitCommitHash(git, match, 0)
-  const log = await git.log({ from: latest, to: current })
+  const prev = await getGitCommitHash(
+    git,
+    'prev' in match ? match.prev : match,
+    1
+  )
+
+  const current = await getGitCommitHash(
+    git,
+    'current' in match ? match.current : match,
+    0
+  )
+
+  const log = await git.log({ from: prev, to: current })
+
   return [...log.all].map((c) =>
     objectPick(c, ['hash', 'date', 'message', 'author_name', 'author_email'])
   )

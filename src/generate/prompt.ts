@@ -26,17 +26,15 @@ The release notes should be concise, informative, and highlight the key changes,
 `
 }
 
-export function buildUserPrompt(commits: GitCommitInfo[]) {
-  const commitsList = commits.map((c) =>
-    [
-      `- Commithash: ${c.hash}`,
-      `  - Timestamp: ${c.date}`,
-      `  - Author: ${c.author_name} <${c.author_email}>`,
-      `  > ${c.message}`,
-    ].join('\n')
-  )
-
-  return `Here are the commits related to the release:
-${commitsList.join('\n')}
-`
+export function buildCommitsMarkdown(commits: GitCommitInfo[]) {
+  return commits
+    .map((c) =>
+      [
+        `- Commithash: ${c.hash}`,
+        `  - Timestamp: ${c.date}`,
+        `  - Author: ${c.author_name} <${c.author_email}>`,
+        `  > ${c.message}`,
+      ].join('\n')
+    )
+    .join('\n\n')
 }

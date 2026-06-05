@@ -5,7 +5,7 @@ import { generateText, stepCountIs } from 'ai'
 import { numberClamp } from 'daily-code'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
-import { buildSystemPrompt, buildUserPrompt } from './prompt.js'
+import { buildCommitsMarkdown, buildSystemPrompt } from './prompt.js'
 import { generateTools } from './tools.js'
 
 type GenerateOptions = z.infer<typeof generateConfigSchema> & {
@@ -17,24 +17,45 @@ export async function generateReleaseNote(
   options: GenerateOptions
 ) {
   const git = simpleGit(cwd)
-  const commits = await getGitCommitsInfo(git, options.match)
+  const commits = await getGitCommitsInfo(git, options.target)
+  if (commits.length < 2) {
+    throw new Error(
+      `Not enough commits found between the specified targets to generate release notes. Found ${commits.length} commit(s).`
+    )
+  }
 
   const provider = await resolveProvider(options.provider, options)
   if (!provider) {
     throw new Error(`Unsupported provider: ${options.provider}`)
   }
 
+  const commitsMarkdown = buildCommitsMarkdown(commits)
+  options.logger?.('='.repeat(80))
+  options.logger?.(commitsMarkdown)
+  options.logger?.('='.repeat(80))
+
   const steps = options.steps ?? numberClamp((commits.length + 1) * 2, 10, 100)
-  const promptSteps = Math.floor(steps / 1.5)
+  options.logger?.(
+    `Generating with "${options.provider}" using "${options.model}" in ${steps} steps...`
+  )
 
   const result = await generateText({
     model: provider(options.model),
 
-    prompt: buildUserPrompt(commits).trim(),
-    system: buildSystemPrompt(promptSteps).trim(),
-
     tools: generateTools(git, options.logger),
     stopWhen: stepCountIs(steps),
+
+    system: buildSystemPrompt(Math.floor(steps / 1.5)),
+    messages: [
+      {
+        role: 'user',
+        content: 'Here are the commits related to the release:',
+      },
+      {
+        role: 'user',
+        content: commitsMarkdown.trim(),
+      },
+    ],
   })
 
   return {
