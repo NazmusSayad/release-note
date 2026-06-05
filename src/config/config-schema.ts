@@ -31,10 +31,19 @@ export const providerOptionsSchema = z.object({
   options: z.record(z.string(), z.unknown()).optional(),
 })
 
-export const generateConfigSchema = z
-  .object({
-    target: gitCommitTargetSchema.default({ tag: '.*' }),
-    model: z.string().min(1),
-    steps: z.number().int().min(5).max(500).optional(),
-  })
-  .extend(providerOptionsSchema.shape)
+export const generateConfigSchema = providerOptionsSchema.extend({
+  target: gitCommitTargetSchema.default({ tag: '.*' }),
+
+  model: z.string().min(1),
+  temperature: z.number().min(0).max(1).optional(),
+  topP: z.number().min(0).max(1).optional(),
+  topK: z.number().optional(),
+
+  maxRetries: z.number().int().min(0).optional(),
+  maxOutputTokens: z.number().int().min(1).optional(),
+
+  toolChoice: z.enum(['auto', 'none', 'required']).optional(),
+  steps: z.number().int().min(5).max(500).optional(),
+
+  instructions: z.string().optional(),
+})

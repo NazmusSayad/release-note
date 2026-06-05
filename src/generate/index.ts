@@ -42,19 +42,24 @@ export async function generateReleaseNote(
   const result = await generateText({
     model: provider(options.model),
 
+    temperature: options.temperature,
+    topP: options.topP,
+    topK: options.topK,
+
+    maxRetries: options.maxRetries,
+    maxOutputTokens: options.maxOutputTokens,
+
+    toolChoice: options.toolChoice,
     tools: generateTools(git, options.logger),
     stopWhen: stepCountIs(steps),
 
     system: buildSystemPrompt(Math.floor(steps / 1.5)),
     messages: [
-      {
-        role: 'user',
-        content: 'Here are the commits related to the release:',
-      },
-      {
-        role: 'user',
-        content: commitsMarkdown.trim(),
-      },
+      { role: 'user', content: 'Here are the commits related to the release:' },
+      { role: 'user', content: commitsMarkdown.trim() },
+      ...(options.instructions
+        ? [{ role: 'user' as const, content: options.instructions }]
+        : []),
     ],
   })
 
