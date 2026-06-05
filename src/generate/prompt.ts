@@ -31,9 +31,9 @@ export function buildCommitsMarkdown(commits: GitCommitInfo[]) {
     .map((c) =>
       [
         `- Commithash: ${c.hash}`,
-        `  > ${c.message}`,
-        `  * Timestamp: ${c.date}`,
-        `  * Author: ${c.author_name} <${c.author_email}>`,
+        `  - > ${c.message}`,
+        `  - Timestamp: ${c.date}`,
+        `  - Author: ${c.author_name} <${c.author_email}>`,
       ].join('\n')
     )
     .join('\n\n')
