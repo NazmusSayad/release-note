@@ -1,6 +1,6 @@
 {
   "name": "release-note",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

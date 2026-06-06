@@ -49,6 +49,7 @@ export async function generateReleaseNote(
     maxRetries: options.maxRetries,
     maxOutputTokens: options.maxOutputTokens,
 
+    timeout: options.timeout,
     toolChoice: options.toolChoice,
     tools: generateTools(git, options.logger),
     stopWhen: stepCountIs(steps),

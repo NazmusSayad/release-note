@@ -45,6 +45,7 @@ export const generateConfigSchema = providerOptionsSchema.extend({
   topP: z.number().min(0).max(1).optional(),
   topK: z.number().optional(),
 
+  timeout: z.number().int().min(0).optional(),
   maxRetries: z.number().int().min(0).optional(),
   maxOutputTokens: z.number().int().min(1).optional(),
 
