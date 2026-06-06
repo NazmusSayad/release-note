@@ -36,7 +36,7 @@ export async function generateReleaseNote(
 
   const steps = options.steps ?? numberClamp((commits.length + 1) * 2, 10, 100)
   options.logger?.(
-    `Generating with "${options.provider}" using "${options.model}" in ${steps} steps...`
+    `Generating with ${JSON.stringify(options.provider)} using "${options.model}" in ${steps} steps...`
   )
 
   const result = await generateText({
