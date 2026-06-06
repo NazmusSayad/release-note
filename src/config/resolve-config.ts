@@ -3,7 +3,11 @@ import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 import z from 'zod'
-import { generateConfigSchema, providerOptionsSchema } from './config-schema.js'
+import {
+  generateConfigSchema,
+  providerOptionsSchema,
+  providerPackageSchema,
+} from './config-schema.js'
 
 const CONFIG_PATHS = [
   'release-note.json',
@@ -57,13 +61,19 @@ function resolveApiKey(
 }
 
 export async function resolveProvider(
-  name: string,
+  provider: z.infer<typeof providerPackageSchema>,
   options: z.infer<typeof providerOptionsSchema>
 ): Promise<Provider['languageModel'] | null> {
   const resolvedApiKey = resolveApiKey(options.apiKeyEnv)
+  const providerOptions = {
+    apiKey: resolvedApiKey,
+    baseURL: options?.apiUrl,
+    headers: options?.headers,
+    ...options?.options,
+  }
 
-  if (name === '@ai-sdk/openai-compatible') {
-    if (!options.apiUrl) {
+  if (provider === '@ai-sdk/openai-compatible') {
+    if (!providerOptions.baseURL) {
       throw new Error('""apiUrl"" is required for openai-compatible provider')
     }
 
@@ -73,24 +83,27 @@ export async function resolveProvider(
 
     const { createOpenAICompatible } = await import('@ai-sdk/openai-compatible')
     return createOpenAICompatible({
-      name,
-      apiKey: resolvedApiKey,
-      baseURL: options?.apiUrl,
-      headers: options?.headers,
-      ...options?.options,
+      name: provider,
+      ...providerOptions,
+      baseURL: providerOptions.baseURL,
     })
   }
 
-  const provider = PROVIDERS_FACTORY[name]
-  if (provider) {
-    const mod = await import(name)
-    return mod[provider.create]({
-      apiKey: resolvedApiKey,
-      baseURL: options?.apiUrl,
-      headers: options?.headers,
-      ...options?.options,
-    })
+  if (typeof provider === 'string') {
+    const providerConfig = PROVIDERS_FACTORY[provider]
+
+    if (!providerConfig) {
+      throw new Error(
+        `Unsupported provider: ${provider}. Supported providers are: ${Object.keys(
+          PROVIDERS_FACTORY
+        ).join(', ')}.`
+      )
+    }
+
+    const mod = await import(provider)
+    return mod[providerConfig.create](providerOptions)
   }
 
-  return null
+  const mod = await import(provider.npm)
+  return mod[provider.import](providerOptions)
 }

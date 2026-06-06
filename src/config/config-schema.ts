@@ -17,16 +17,22 @@ export const gitCommitTargetSchema = z.union([
   }),
 ])
 
+export const providerPackageSchema = z.union([
+  z.enum(
+    Object.keys(SUPPORTED_PROVIDERS) as (keyof typeof SUPPORTED_PROVIDERS)[]
+  ),
+
+  z.object({
+    npm: z.string(),
+    import: z.string(),
+  }),
+])
+
 export const providerOptionsSchema = z.object({
   apiUrl: z.string().optional(),
   apiKeyEnv: z.union([z.string(), z.array(z.string())]).optional(),
 
-  provider: z
-    .enum(
-      Object.keys(SUPPORTED_PROVIDERS) as (keyof typeof SUPPORTED_PROVIDERS)[]
-    )
-    .default('@ai-sdk/openai-compatible'),
-
+  provider: providerPackageSchema.default('@ai-sdk/openai-compatible'),
   headers: z.record(z.string(), z.string()).optional(),
   options: z.record(z.string(), z.unknown()).optional(),
 })
