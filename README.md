@@ -1,16 +1,8 @@
 # release-note
 
-AI-powered release note generator. Reads your git history between two refs, then asks an LLM to draft user-facing release notes — with the ability to inspect diffs and browse the tree at any commit for accurate, grounded output.
+AI-powered release note generator. Point it at a git repository and it automatically drafts user-facing release notes for you — no more writing them by hand.
 
-Works as a CLI or as a programmatic library.
-
-## Features
-
-- **Git-aware**: pick a range by tag regex (e.g. `v.*`) or explicit commit hash.
-- **Agentic**: the model can call `check_diff` and `browse_code` tools to look up the actual changes before writing.
-- **Multi-provider**: ships support for OpenAI, Anthropic, Google, xAI, Azure, Bedrock, Groq, Mistral, DeepSeek, Cohere, Fireworks, Perplexity, OpenRouter, TogetherAI, DeepInfra, Cerebras, Fal, Luma, Baseten, Vertex, and any OpenAI-compatible endpoint.
-- **Configurable**: JSON / JSONC config file, CLI flags, or full programmatic control.
-- **Audience-tuned prompts**: output is written for end users and PMs, not engineers. Internal identifiers, file paths, and implementation details are filtered out automatically.
+Works as a CLI or a programmatic library.
 
 ## Installation
 
@@ -22,13 +14,36 @@ npm install release-note
 yarn add release-note
 ```
 
-If you plan to use OpenRouter, also install its peer dependency:
+Depending on which LLM provider you use, you may need to install an additional package. For example, if you use OpenRouter:
 
 ```bash
 pnpm add @openrouter/ai-sdk-provider
 ```
 
-For other providers, the corresponding `@ai-sdk/*` package is required at runtime and is **not** bundled with `release-note`.
+Other providers each have a corresponding `@ai-sdk/*` package. See the configuration section below for the full list.
+
+## Quick start
+
+1. Create a `release-note.json` in your project root:
+
+   ```json
+   {
+     "model": "gpt-4o",
+     "provider": "@ai-sdk/openai",
+     "apiKeyEnv": "OPENAI_API_KEY",
+     "match": { "tag": "v.*" }
+   }
+   ```
+
+2. Set your API key as an environment variable (`OPENAI_API_KEY` in this example).
+
+3. Run:
+
+   ```bash
+   release-note generate
+   ```
+
+The tool finds the latest two tags matching `v.*`, collects all commits between them, and generates a release note to stdout.
 
 ## CLI
 
@@ -36,26 +51,75 @@ For other providers, the corresponding `@ai-sdk/*` package is required at runtim
 release-note generate [options]
 ```
 
-Options:
-
-| Flag        | Description                                     |
-| ----------- | ----------------------------------------------- |
-| `--cwd`     | Working directory (defaults to `process.cwd()`) |
-| `--config`  | Path to a config file                           |
-| `--outFile` | Write the result to a file instead of stdout    |
-
-Examples:
+| Flag        | Description                                       |
+| ----------- | ------------------------------------------------- |
+| `--cwd`     | Working directory (defaults to current directory) |
+| `--config`  | Path to a config file                             |
+| `--outFile` | Write the result to a file instead of stdout      |
 
 ```bash
-# Print to stdout
-release-note generate
-
-# Use a specific config
-release-note generate --config ./configs/release.json
-
-# Save the result to a file
+# Save to a file
 release-note generate --outFile RELEASE_NOTES.md
+
+# Use a specific config file
+release-note generate --config ./configs/release.json
 ```
+
+## Configuration
+
+Place a `release-note.json` or `release-note.jsonc` file in your project root (or in `.github/`). JSONC allows comments and trailing commas. Use `--config <path>` to use a different file.
+
+### Schema
+
+| Field       | Required | Description                                                  |
+| ----------- | -------- | ------------------------------------------------------------ |
+| `model`     | Yes      | Model identifier (e.g. `gpt-4o`, `claude-sonnet-4-20250514`) |
+| `provider`  | No       | Provider package (default: `@ai-sdk/openai-compatible`)      |
+| `apiKeyEnv` | No       | Environment variable name holding the API key                |
+| `apiUrl`    | No       | Base URL (required for `@ai-sdk/openai-compatible`)          |
+| `match`     | No       | Commit range to scan (default: `{ "tag": ".*" }`)            |
+| `steps`     | No       | Cap on LLM reasoning steps (auto-calculated if omitted)      |
+| `headers`   | No       | Extra HTTP headers for the provider                          |
+| `options`   | No       | Extra options passed to the provider factory                 |
+
+**Supported providers:** `@ai-sdk/openai`, `@ai-sdk/openai-compatible`, `@ai-sdk/anthropic`, `@ai-sdk/google`, `@ai-sdk/xai`, `@ai-sdk/azure`, `@ai-sdk/amazon-bedrock`, `@ai-sdk/groq`, `@ai-sdk/mistral`, `@ai-sdk/deepseek`, `@ai-sdk/cohere`, `@ai-sdk/fireworks`, `@ai-sdk/perplexity`, `@ai-sdk/togetherai`, `@ai-sdk/deepinfra`, `@ai-sdk/cerebras`, `@ai-sdk/fal`, `@ai-sdk/luma`, `@ai-sdk/baseten`, `@ai-sdk/google-vertex`, `@openrouter/ai-sdk-provider`
+
+### Examples
+
+**OpenRouter:**
+
+```json
+{
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "provider": "@openrouter/ai-sdk-provider",
+  "apiKeyEnv": "OPENROUTER_API_KEY",
+  "match": { "tag": "v.*" }
+}
+```
+
+**Local model (LM Studio, vLLM, etc.):**
+
+```json
+{
+  "model": "local-model",
+  "provider": "@ai-sdk/openai-compatible",
+  "apiUrl": "http://localhost:1234/v1",
+  "apiKeyEnv": "LLM_API_KEY"
+}
+```
+
+**Single commit:**
+
+```json
+{
+  "model": "gpt-4o",
+  "provider": "@ai-sdk/openai",
+  "apiKeyEnv": "OPENAI_API_KEY",
+  "match": { "commit": "HEAD" }
+}
+```
+
+> With `match.tag`, the most recent matching tag is the upper bound and the next-most-recent is the lower bound. With `match.commit`, only that single commit is covered.
 
 ## Programmatic API
 
@@ -63,15 +127,16 @@ release-note generate --outFile RELEASE_NOTES.md
 import releaseNote from 'release-note'
 
 const { note, commits, provider } = await releaseNote(process.cwd(), {
-  model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-  provider: '@openrouter/ai-sdk-provider',
+  model: 'gpt-4o',
+  provider: '@ai-sdk/openai',
+  apiKeyEnv: 'OPENAI_API_KEY',
   match: { tag: 'v.*' },
 })
 
 console.log(note)
 ```
 
-The `releaseNote` named export is also available:
+The default export and the named `releaseNote` export are both available:
 
 ```ts
 import { releaseNote } from 'release-note'
@@ -85,7 +150,7 @@ import { releaseNote } from 'release-note'
 | `commits`  | `GitCommitInfo[]` | The commits included in the range     |
 | `provider` | `object`          | Raw provider response and token usage |
 
-### `GitCommitInfo`
+**`GitCommitInfo`:**
 
 ```ts
 type GitCommitInfo = {
@@ -97,148 +162,21 @@ type GitCommitInfo = {
 }
 ```
 
-## Configuration
+## Output style
 
-`release-note` looks for the first existing file in this order:
+Generated release notes are written for end users and product managers, not engineers:
 
-1. `release-note.json`
-2. `release-note.jsonc`
-3. `.github/release-note.json`
-4. `.github/release-note.jsonc`
-
-Use `--config <path>` to point at a different file. JSONC (with comments and trailing commas) is supported.
-
-### Schema
-
-```ts
-{
-  // Commit range. Either a tag regex or an explicit commit.
-  // Default: { tag: '.*' }
-  match: { tag: string } | { commit: string }
-
-  // Model identifier. Required.
-  model: string
-
-  // Optional cap on agent steps. Defaults to (commits + 1) * 2.
-  steps?: number
-
-  // Provider package. Default: '@ai-sdk/openai-compatible'
-  provider: '@ai-sdk/openai'
-          | '@ai-sdk/openai-compatible'
-          | '@ai-sdk/anthropic'
-          | '@ai-sdk/google'
-          | '@ai-sdk/xai'
-          | '@ai-sdk/azure'
-          | '@ai-sdk/amazon-bedrock'
-          | '@ai-sdk/groq'
-          | '@ai-sdk/fal'
-          | '@ai-sdk/deepinfra'
-          | '@ai-sdk/google-vertex'
-          | '@ai-sdk/mistral'
-          | '@ai-sdk/togetherai'
-          | '@ai-sdk/cohere'
-          | '@ai-sdk/fireworks'
-          | '@ai-sdk/deepseek'
-          | '@ai-sdk/cerebras'
-          | '@ai-sdk/perplexity'
-          | '@ai-sdk/luma'
-          | '@ai-sdk/baseten'
-          | '@openrouter/ai-sdk-provider'
-
-  // Required when provider is '@ai-sdk/openai-compatible'.
-  apiUrl?: string
-
-  // Environment variable name(s) holding the API key.
-  // If an array is given, only the first entry is consulted.
-  apiKeyEnv?: string | string[]
-
-  // Extra HTTP headers for the provider.
-  headers?: Record<string, string>
-
-  // Extra provider options (passed through to the provider factory).
-  options?: Record<string, unknown>
-}
-```
-
-### Example: OpenRouter
-
-`release-note.json`
-
-```json
-{
-  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-  "provider": "@openrouter/ai-sdk-provider",
-  "apiKeyEnv": "OPENROUTER_API_KEY",
-  "match": { "tag": "v.*" }
-}
-```
-
-### Example: OpenAI-compatible endpoint (LM Studio, vLLM, etc.)
-
-`release-note.json`
-
-```json
-{
-  "model": "local-model",
-  "provider": "@ai-sdk/openai-compatible",
-  "apiUrl": "http://localhost:1234/v1",
-  "apiKeyEnv": "LLM_API_KEY",
-  "headers": {
-    "X-Custom-Header": "value"
-  }
-}
-```
-
-### Example: explicit commit range
-
-```json
-{
-  "model": "gpt-4o",
-  "provider": "@ai-sdk/openai",
-  "apiKeyEnv": "OPENAI_API_KEY",
-  "match": { "commit": "HEAD" }
-}
-```
-
-> With `match.tag`, the most recent matching tag becomes the upper bound and the next-most-recent becomes the lower bound. With `match.commit`, both bounds resolve to the same hash, so the log covers that single commit.
-
-## How it works
-
-1. Resolves the commit range from `match` (latest and previous matching tags, or an explicit commit).
-2. Collects the commits in that range via `simple-git`.
-3. Sends the commit list to the configured model, along with two tools:
-   - `check_diff(commithash)` — returns the full patch for a commit.
-   - `browse_code(commithash, path)` — returns the file content or folder listing at a path within a commit.
-4. The model may call these tools to gather context, then produces the final release note.
-5. Returns the text (and writes it to `--outFile` if provided).
-
-The system prompt enforces:
-
-- No top-level title wrapping the content as "Release Note".
-- Section headings via `##`, not `---` separators.
-- Grouped sections such as **New Features**, **Bug Fixes**, **Improvements**, **Breaking Changes**.
-- No internal identifiers (paths, class/function names, env keys, etc.) and no secrets.
-- Trivial changes (formatting, refactors, dependency bumps with no user impact) are skipped.
+- **Grouped by category** — New Features, Bug Fixes, Improvements, Breaking Changes
+- **No internal identifiers** — file paths, class names, function names, env keys are filtered out
+- **No trivial changes** — formatting-only commits, refactors, and dependency bumps with no user impact are skipped
+- **Clean markdown** — section headings via `##`, no top-level title wrapping
 
 ## Requirements
 
-- Node.js 18+ (ES modules).
-- A git repository to read history from.
-- An API key for whichever provider you configure.
-
-## Development
-
-```bash
-pnpm install
-pnpm dev          # build in watch mode + typecheck
-pnpm build        # produce dist/
-pnpm typecheck    # tsc --noEmit
-pnpm lint         # eslint .
-pnpm lint:fix     # eslint . --fix
-```
-
-The build is driven by [tsdown](https://github.com/rolldown/tsdown) and emits ESM into `dist/`.
+- Node.js 18+
+- A git repository
+- An API key for your chosen LLM provider
 
 ## License
 
-No license has been declared in `package.json` yet. Add a `LICENSE` file and a `license` field in `package.json` before publishing.
+[MIT](LICENSE)
