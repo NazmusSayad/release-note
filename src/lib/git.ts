@@ -50,16 +50,16 @@ export async function getGitCommitsInfo(
   git: SimpleGit,
   match: z.infer<typeof gitCommitTargetSchema>
 ): Promise<GitCommitInfo[]> {
-  const prev = await getGitCommitHash(
-    git,
-    'prev' in match ? match.prev : match,
-    1
-  )
-
   const current = await getGitCommitHash(
     git,
     'current' in match ? match.current : match,
     0
+  )
+
+  const prev = await getGitCommitHash(
+    git,
+    'prev' in match ? match.prev : match,
+    1
   )
 
   const log = await git.log({ from: prev, to: current })
