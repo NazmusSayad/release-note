@@ -71,12 +71,12 @@ export async function getGitCommitsInfo(
 ) {
   const current = await getGitCommitHash(
     git,
-    'current' in match ? match.current : { tag: match }
+    'current' in match ? match.current : match
   )
 
   const prev = await getGitCommitHash(
     git,
-    'prev' in match ? match.prev : { tag: match },
+    'prev' in match ? match.prev : match,
     current
   )
 

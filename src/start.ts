@@ -4,7 +4,7 @@ void (async () => {
   const { note, commits } = await generateReleaseNote(process.cwd(), {
     model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
     provider: '@openrouter/ai-sdk-provider',
-    // target: /.*/,
+    target: { prev: { tag: /.*/ }, current: { tag: 'v0.0.1' } },
     logger: console.log,
   })
 

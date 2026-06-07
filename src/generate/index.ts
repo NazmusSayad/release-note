@@ -23,7 +23,7 @@ export async function generateReleaseNote(
   const git = simpleGit(cwd)
   const gitResult = await getGitCommitsInfo(
     git,
-    options.target ?? DEFAULT_TARGET_REGEX
+    options.target ?? { tag: DEFAULT_TARGET_REGEX }
   )
 
   if (gitResult.commits.length < 2) {

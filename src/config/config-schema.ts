@@ -11,7 +11,7 @@ const tagSchema = z.object({
 export const combinedTargetSchema = z.union([tagSchema, commitSchema])
 
 export const gitCommitTargetSchema = z.union([
-  z.instanceof(RegExp),
+  tagSchema.omit({ offset: true }),
   z.object({
     prev: combinedTargetSchema,
     current: combinedTargetSchema,
