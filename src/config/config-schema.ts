@@ -8,12 +8,13 @@ const tagSchema = z.object({
   offset: z.number().int().min(0).optional(),
 })
 
-export const gitCommitTargetSchema = z.union([
-  tagSchema,
+export const combinedTargetSchema = z.union([tagSchema, commitSchema])
 
+export const gitCommitTargetSchema = z.union([
+  z.instanceof(RegExp),
   z.object({
-    prev: z.union([tagSchema, commitSchema]),
-    current: z.union([tagSchema, commitSchema]),
+    prev: combinedTargetSchema,
+    current: combinedTargetSchema,
   }),
 ])
 
@@ -38,7 +39,7 @@ export const providerOptionsSchema = z.object({
 })
 
 export const generateConfigSchema = providerOptionsSchema.extend({
-  target: gitCommitTargetSchema.default({ tag: '.*' }),
+  target: gitCommitTargetSchema.default(/.*/),
 
   model: z.string().min(1),
   temperature: z.number().min(0).max(1).optional(),

@@ -1,4 +1,7 @@
-import { gitCommitTargetSchema } from '@/config/config-schema.js'
+import {
+  combinedTargetSchema,
+  gitCommitTargetSchema,
+} from '@/config/config-schema.js'
 import { objectPick, Prettify } from 'daily-code'
 import { DefaultLogFields, type SimpleGit } from 'simple-git'
 import z from 'zod'
@@ -10,37 +13,53 @@ export type GitCommitInfo = Prettify<
   >
 >
 
+export type MatchResult = {
+  tag?: string
+  hash: string
+}
+
 async function getGitCommitHash(
   git: SimpleGit,
-  target: { tag: string | RegExp; offset?: number } | { commit: string },
-  defaultOffset: number
-): Promise<string> {
+  target: z.infer<typeof combinedTargetSchema>,
+  cursor?: MatchResult
+): Promise<MatchResult> {
   if ('tag' in target) {
-    const offset = target.offset ?? defaultOffset
-    const targetRegex =
-      target.tag instanceof RegExp ? target.tag : new RegExp(target.tag)
-
     const tags = await git.tags({ '--sort': '-v:refname' })
 
-    const matched = tags.all.filter((tag) => targetRegex.test(tag))
+    const matched = tags.all.filter((tag) =>
+      typeof target.tag === 'string' ? tag === target.tag : target.tag.test(tag)
+    )
+
     if (matched.length === 0) {
       throw new Error(`No tags matched pattern: ${target.tag}`)
     }
 
-    if (offset < 0 || offset >= matched.length) {
+    let index: number
+    if (cursor?.tag) {
+      const cursorIndex = matched.findIndex((tag) => tag === cursor.tag)
+      if (cursorIndex === -1) {
+        throw new Error(`Cursor tag "${cursor.tag}" not found in matched tags`)
+      }
+
+      index = cursorIndex + 1 + (target.offset ?? 0)
+    } else {
+      index = target.offset ?? 0
+    }
+
+    if (index < 0 || index >= matched.length) {
       throw new Error(
-        `Offset ${offset} out of range: only ${matched.length} tag(s) matched pattern ${target.tag}`
+        `Offset ${index} out of range: only ${matched.length} tag(s) matched pattern ${target.tag}`
       )
     }
 
-    const tag = matched[offset]
+    const tag = matched[index]
     const hash = await git.revparse([tag])
-    return hash.trim()
+    return { tag, hash: hash.trim() }
   }
 
   if ('commit' in target) {
     const hash = await git.revparse([target.commit])
-    return hash.trim()
+    return { hash: hash.trim() }
   }
 
   throw new Error('Invalid target: must contain either "tag" or "commit"')
@@ -49,22 +68,28 @@ async function getGitCommitHash(
 export async function getGitCommitsInfo(
   git: SimpleGit,
   match: z.infer<typeof gitCommitTargetSchema>
-): Promise<GitCommitInfo[]> {
+) {
   const current = await getGitCommitHash(
     git,
-    'current' in match ? match.current : match,
-    0
+    'current' in match ? match.current : { tag: match }
   )
 
   const prev = await getGitCommitHash(
     git,
-    'prev' in match ? match.prev : match,
-    1
+    'prev' in match ? match.prev : { tag: match },
+    current
   )
 
-  const log = await git.log({ from: prev, to: current })
+  const commitLogs = await git.log({
+    from: prev.hash,
+    to: current.hash,
+  })
 
-  return [...log.all].map((c) =>
-    objectPick(c, ['hash', 'date', 'message', 'author_name', 'author_email'])
-  )
+  return {
+    prev,
+    current,
+    commits: [...commitLogs.all].map<GitCommitInfo>((c) =>
+      objectPick(c, ['hash', 'date', 'message', 'author_name', 'author_email'])
+    ),
+  }
 }

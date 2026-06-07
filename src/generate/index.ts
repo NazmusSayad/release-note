@@ -17,29 +17,36 @@ export async function generateReleaseNote(
   options: GenerateOptions
 ) {
   const git = simpleGit(cwd)
-  const commits = await getGitCommitsInfo(git, options.target)
-  if (commits.length < 2) {
+
+  const gitResult = await getGitCommitsInfo(git, options.target)
+  if (gitResult.commits.length < 2) {
     throw new Error(
-      `Not enough commits found between the specified targets to generate release notes. Found ${commits.length} commit(s).`
+      `Not enough commits found between the specified targets to generate release notes. Found ${gitResult.commits.length} commit(s).`
     )
   }
+
+  options.logger?.(`Previous target: ${JSON.stringify(gitResult.prev)}`)
+  options.logger?.(`Current target: ${JSON.stringify(gitResult.current)}`)
+
+  // throw new Error('Not implemented yet')
 
   const provider = await resolveProvider(options.provider, options)
   if (!provider) {
     throw new Error(`Unsupported provider: ${options.provider}`)
   }
 
-  const commitsMarkdown = buildCommitsMarkdown(commits)
+  const commitsMarkdown = buildCommitsMarkdown(gitResult.commits)
   options.logger?.('='.repeat(80))
   options.logger?.(commitsMarkdown)
   options.logger?.('='.repeat(80))
 
-  const steps = options.steps ?? numberClamp((commits.length + 1) * 2, 10, 100)
+  const steps =
+    options.steps ?? numberClamp((gitResult.commits.length + 1) * 2, 10, 100)
   options.logger?.(
     `Generating with ${JSON.stringify(options.provider)} using "${options.model}" in ${steps} steps...`
   )
 
-  const result = await generateText({
+  const llmResult = await generateText({
     model: provider(options.model),
 
     temperature: options.temperature,
@@ -65,12 +72,15 @@ export async function generateReleaseNote(
   })
 
   return {
-    commits,
-    note: result.text,
+    prev: gitResult.prev,
+    current: gitResult.current,
+    commits: gitResult.commits,
 
+    note: llmResult.text,
+    output: llmResult.output,
     provider: {
-      usage: result.totalUsage,
-      response: result.response,
+      usage: llmResult.totalUsage,
+      response: llmResult.response,
     },
   }
 }
