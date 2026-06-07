@@ -1,5 +1,9 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
 import { resolveProvider } from '@/config/resolve-config.js'
+import {
+  DEFAULT_PROVIDER_PACKAGE,
+  DEFAULT_TARGET_REGEX,
+} from '@/constants/config.js'
 import { getGitCommitsInfo } from '@/lib/git.js'
 import { generateText, stepCountIs } from 'ai'
 import { numberClamp } from 'daily-code'
@@ -17,8 +21,11 @@ export async function generateReleaseNote(
   options: GenerateOptions
 ) {
   const git = simpleGit(cwd)
+  const gitResult = await getGitCommitsInfo(
+    git,
+    options.target ?? DEFAULT_TARGET_REGEX
+  )
 
-  const gitResult = await getGitCommitsInfo(git, options.target)
   if (gitResult.commits.length < 2) {
     throw new Error(
       `Not enough commits found between the specified targets to generate release notes. Found ${gitResult.commits.length} commit(s).`
@@ -28,9 +35,10 @@ export async function generateReleaseNote(
   options.logger?.(`Previous target: ${JSON.stringify(gitResult.prev)}`)
   options.logger?.(`Current target: ${JSON.stringify(gitResult.current)}`)
 
-  // throw new Error('Not implemented yet')
-
-  const provider = await resolveProvider(options.provider, options)
+  const provider = await resolveProvider(
+    options.provider ?? DEFAULT_PROVIDER_PACKAGE,
+    options
+  )
   if (!provider) {
     throw new Error(`Unsupported provider: ${options.provider}`)
   }

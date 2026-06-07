@@ -33,13 +33,13 @@ export const providerOptionsSchema = z.object({
   apiUrl: z.string().optional(),
   apiKeyEnv: z.union([z.string(), z.array(z.string())]).optional(),
 
-  provider: providerPackageSchema.default('@ai-sdk/openai-compatible'),
+  provider: providerPackageSchema.optional(),
   headers: z.record(z.string(), z.string()).optional(),
   options: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const generateConfigSchema = providerOptionsSchema.extend({
-  target: gitCommitTargetSchema.default(/.*/),
+  target: gitCommitTargetSchema.optional(),
 
   model: z.string().min(1),
   temperature: z.number().min(0).max(1).optional(),
