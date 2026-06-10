@@ -4,16 +4,20 @@ import {
   DEFAULT_PROVIDER_PACKAGE,
   DEFAULT_TARGET_REGEX,
 } from '@/constants/config.js'
-import { getGitCommitsInfo } from '@/lib/git.js'
+import { getGitCommitsInfo, GitCommitInfo } from '@/lib/git.js'
 import { generateText, stepCountIs } from 'ai'
-import { numberClamp } from 'daily-code'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
-import { buildCommitsMarkdown, buildSystemPrompt } from './prompt.js'
+import { buildMarkdownCommitsList, buildSystemPrompt } from './prompt.js'
 import { generateTools } from './tools.js'
 
 type GenerateOptions = z.infer<typeof generateConfigSchema> & {
   logger?: (...args: unknown[]) => void
+  filter?: (
+    commit: GitCommitInfo,
+    commitIndex: number,
+    commits: GitCommitInfo[]
+  ) => boolean
 }
 
 export async function generateReleaseNote(
@@ -43,16 +47,14 @@ export async function generateReleaseNote(
     throw new Error(`Unsupported provider: ${options.provider}`)
   }
 
-  const commitsMarkdown = buildCommitsMarkdown(gitResult.commits)
-  options.logger?.('='.repeat(80))
-  options.logger?.(commitsMarkdown)
-  options.logger?.('='.repeat(80))
+  const selectedCommits = options.filter
+    ? gitResult.commits.filter(options.filter)
+    : gitResult.commits
 
-  const steps =
-    options.steps ?? numberClamp((gitResult.commits.length + 1) * 2, 10, 100)
-  options.logger?.(
-    `Generating with ${JSON.stringify(options.provider)} using "${options.model}" in ${steps} steps...`
-  )
+  const markdownCommitsList = buildMarkdownCommitsList(selectedCommits)
+  options.logger?.('='.repeat(80))
+  options.logger?.(markdownCommitsList)
+  options.logger?.('='.repeat(80))
 
   const llmResult = await generateText({
     model: provider(options.model),
@@ -67,12 +69,24 @@ export async function generateReleaseNote(
     timeout: options.timeout,
     toolChoice: options.toolChoice,
     tools: generateTools(git, options.logger),
-    stopWhen: stepCountIs(steps),
+    stopWhen: stepCountIs(options.steps ?? 100),
 
-    system: buildSystemPrompt(Math.floor(steps / 1.5)),
+    system: buildSystemPrompt(),
     messages: [
-      { role: 'user', content: 'Here are the commits related to the release:' },
-      { role: 'user', content: commitsMarkdown.trim() },
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'Here are the commits related to the release:',
+          },
+          {
+            type: 'text',
+            text: markdownCommitsList.trim(),
+          },
+        ],
+      },
+
       ...(options.instructions
         ? [{ role: 'user' as const, content: options.instructions }]
         : []),
@@ -82,7 +96,7 @@ export async function generateReleaseNote(
   return {
     prev: gitResult.prev,
     current: gitResult.current,
-    commits: gitResult.commits,
+    commits: selectedCommits,
 
     note: llmResult.text,
     output: llmResult.output,

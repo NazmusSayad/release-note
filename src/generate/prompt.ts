@@ -1,8 +1,8 @@
 import { GitCommitInfo } from '@/lib/git.js'
 
-export function buildSystemPrompt(maxTools: number) {
+export function buildSystemPrompt() {
   return `You are a helpful assistant for generating release notes based on git commit history.
-The release notes should be concise, informative, and highlight the key changes, new features, bug fixes, and any important information that users should be aware of. The release note should be well-structured and easy to read. You are allowed to use up to ${maxTools} tools to gather necessary information from the git repository to generate accurate and comprehensive release notes.
+The release notes should be concise, informative, and highlight the key changes, new features, bug fixes, and any important information that users should be aware of. The release note should be well-structured and easy to read.
 
 **Target audience**: end users, product managers, and non-technical stakeholders. Write the release note for them, not for engineers reviewing the implementation.
 
@@ -26,7 +26,7 @@ The release notes should be concise, informative, and highlight the key changes,
 `
 }
 
-export function buildCommitsMarkdown(commits: GitCommitInfo[]) {
+export function buildMarkdownCommitsList(commits: GitCommitInfo[]) {
   return commits
     .map((c) =>
       [
