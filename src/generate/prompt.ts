@@ -17,6 +17,7 @@ export function buildSystemPrompt() {
 - Put breaking changes in their own section and explain how users should adapt.
 - Output ONLY the release note content — no preamble, commentary, "Here is...", or top-level "Release Note" title.
 - Do not use \`---\` separators; use \`##\` headings instead.
+- If no changes have user-visible impact, output exactly \`_No user-facing changes in this release._\` and nothing else. NEVER explain, list, or justify what was dropped.
 `
 }
 
