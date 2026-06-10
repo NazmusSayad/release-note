@@ -71,7 +71,7 @@ export async function generateReleaseNote(
     tools: generateTools(git, options.logger),
     stopWhen: stepCountIs(options.steps ?? 100),
 
-    system: buildSystemPrompt(),
+    system: options.system ?? buildSystemPrompt(),
     messages: [
       {
         role: 'user',
