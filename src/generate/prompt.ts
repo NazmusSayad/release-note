@@ -7,7 +7,8 @@ export function buildSystemPrompt() {
 
 ## Guidelines:
 - Focus on user-facing impact: describe WHAT changed and WHY it matters, not HOW it is implemented.
-- Use plain language. Avoid technical jargon, library/framework names, and implementation-specific terminology.
+- Write for someone who doesn't know the product is built with code. Use everyday language — phrase each change in terms of what the user can now do, see, or no longer worry about.
+- Avoid all technical jargon, library/framework names, and implementation-specific terminology.
 - Silently drop changes with no user-visible effect (refactors, renames, formatting, internal tooling, dependency/version bumps) — do not mention them at all, not even as a generic "internal improvements" note.
 - NEVER reveal internal details: source code, file names or paths, class/function/variable names, API routes, database tables, config keys, dependency or package names, or any other internal identifier. If a change cannot be described without exposing these, omit it.
 - NEVER include sensitive information (credentials, secrets, tokens, internal URLs, private endpoints, or environment-specific values).

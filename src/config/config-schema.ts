@@ -53,5 +53,6 @@ export const generateConfigSchema = providerOptionsSchema.extend({
   toolChoice: z.enum(['auto', 'none', 'required']).optional(),
   steps: z.number().int().min(5).max(500).optional(),
 
+  system: z.string().optional(),
   instructions: z.string().optional(),
 })
