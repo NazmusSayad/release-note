@@ -15,7 +15,7 @@ export function buildSystemPrompt() {
 ## Output format:
 - Group related changes under headings using \`##\` (e.g. "New Features", "Bug Fixes", "Improvements", "Breaking Changes"), and list individual changes as bullet points.
 - For breaking changes, use a separate section and explain how users should adapt.
-- Output ONLY the release note content — no preamble, title, commentary, or "Here is...". Do not wrap it in a top-level "Release Note" title.
+- Output ONLY the release note content — no preamble, commentary, "Here is...", or top-level "Release Note" title.
 - Do not use \`---\` separators; use \`##\` headings instead.
 `
 }
