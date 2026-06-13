@@ -30,14 +30,14 @@ export async function generateReleaseNote(
     options.target ?? { tag: DEFAULT_TARGET_REGEX }
   )
 
+  options.logger?.(`Previous target: ${JSON.stringify(gitResult.prev)}`)
+  options.logger?.(`Current target: ${JSON.stringify(gitResult.current)}`)
+
   if (gitResult.commits.length < 2) {
     throw new Error(
       `Not enough commits found between the specified targets to generate release notes. Found ${gitResult.commits.length} commit(s).`
     )
   }
-
-  options.logger?.(`Previous target: ${JSON.stringify(gitResult.prev)}`)
-  options.logger?.(`Current target: ${JSON.stringify(gitResult.current)}`)
 
   const provider = await resolveProvider(
     options.provider ?? DEFAULT_PROVIDER_PACKAGE,
