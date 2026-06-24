@@ -28,7 +28,7 @@ type GenerateResult = {
   current: MatchResult
   commits: GitCommitInfo[]
 
-  provider: {
+  provider?: {
     usage: LanguageModelUsage
     response: Awaited<ReturnType<typeof generateText>>['response']
   }
@@ -58,6 +58,19 @@ export async function generateReleaseNote(
   const selectedCommits = options.filter
     ? gitResult.commits.filter(options.filter)
     : gitResult.commits
+
+  if (selectedCommits.length === 0) {
+    const note = options.emptyMessage || '_No notable changes in this release._'
+
+    return {
+      note: note,
+      output: note,
+
+      prev: gitResult.prev,
+      current: gitResult.current,
+      commits: selectedCommits,
+    }
+  }
 
   const markdownCommitsList = buildMarkdownCommitsList(selectedCommits)
   options.logger?.('='.repeat(80))
@@ -102,12 +115,13 @@ export async function generateReleaseNote(
   })
 
   return {
+    note: llmResult.text,
+    output: llmResult.output,
+
     prev: gitResult.prev,
     current: gitResult.current,
     commits: selectedCommits,
 
-    note: llmResult.text,
-    output: llmResult.output,
     provider: {
       usage: llmResult.totalUsage,
       response: llmResult.response,

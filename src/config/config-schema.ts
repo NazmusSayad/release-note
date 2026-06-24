@@ -55,4 +55,5 @@ export const generateConfigSchema = providerOptionsSchema.extend({
 
   system: z.string().optional(),
   instructions: z.string().optional(),
+  emptyMessage: z.string().optional(),
 })
