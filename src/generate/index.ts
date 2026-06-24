@@ -4,8 +4,8 @@ import {
   DEFAULT_PROVIDER_PACKAGE,
   DEFAULT_TARGET_REGEX,
 } from '@/constants/config.js'
-import { getGitCommitsInfo, GitCommitInfo } from '@/lib/git.js'
-import { generateText, stepCountIs } from 'ai'
+import { getGitCommitsInfo, GitCommitInfo, MatchResult } from '@/lib/git.js'
+import { generateText, LanguageModelUsage, stepCountIs } from 'ai'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
 import { buildMarkdownCommitsList, buildSystemPrompt } from './prompt.js'
@@ -20,10 +20,24 @@ type GenerateOptions = z.infer<typeof generateConfigSchema> & {
   ) => boolean
 }
 
+type GenerateResult = {
+  note: string
+  output: string
+
+  prev: MatchResult
+  current: MatchResult
+  commits: GitCommitInfo[]
+
+  provider: {
+    usage: LanguageModelUsage
+    response: Awaited<ReturnType<typeof generateText>>['response']
+  }
+}
+
 export async function generateReleaseNote(
   cwd: string,
   options: GenerateOptions
-) {
+): Promise<GenerateResult> {
   const git = simpleGit(cwd)
   const gitResult = await getGitCommitsInfo(
     git,
@@ -32,12 +46,6 @@ export async function generateReleaseNote(
 
   options.logger?.(`Previous target: ${JSON.stringify(gitResult.prev)}`)
   options.logger?.(`Current target: ${JSON.stringify(gitResult.current)}`)
-
-  if (gitResult.commits.length < 2) {
-    throw new Error(
-      `Not enough commits found between the specified targets to generate release notes. Found ${gitResult.commits.length} commit(s).`
-    )
-  }
 
   const provider = await resolveProvider(
     options.provider ?? DEFAULT_PROVIDER_PACKAGE,
