@@ -90,7 +90,7 @@ export async function generateReleaseNote(
     timeout: options.timeout,
     toolChoice: options.toolChoice,
     tools: generateTools(git, options.logger),
-    stopWhen: stepCountIs(options.steps ?? 100),
+    stopWhen: stepCountIs(options.steps ?? 1000),
 
     system: options.system ?? buildSystemPrompt(),
     messages: [
