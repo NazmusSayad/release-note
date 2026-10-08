@@ -1,11 +1,13 @@
 import { generateConfigSchema } from '@/config/config-schema.js'
 import { resolveProvider } from '@/config/resolve-config.js'
 import {
+  DEFAULT_GENERATION_RETRIES,
   DEFAULT_PROVIDER_PACKAGE,
+  DEFAULT_STEP_TIMEOUT_MS,
   DEFAULT_TARGET_REGEX,
 } from '@/constants/config.js'
 import { getGitCommitsInfo, GitCommitInfo, MatchResult } from '@/lib/git.js'
-import { generateText, LanguageModelUsage, stepCountIs } from 'ai'
+import { generateText, LanguageModelUsage, ModelMessage, stepCountIs } from 'ai'
 import { simpleGit } from 'simple-git'
 import z from 'zod'
 import { buildMarkdownCommitsList, buildSystemPrompt } from './prompt.js'
@@ -77,54 +79,95 @@ export async function generateReleaseNote(
   options.logger?.(markdownCommitsList)
   options.logger?.('='.repeat(80))
 
-  const llmResult = await generateText({
-    model: provider(options.model),
+  let failureReason = ''
+  let completedMessages: ModelMessage[] = []
 
-    temperature: options.temperature,
-    topP: options.topP,
-    topK: options.topK,
-
-    maxRetries: options.maxRetries,
-    maxOutputTokens: options.maxOutputTokens,
-
-    timeout: options.timeout,
-    toolChoice: options.toolChoice,
-    tools: generateTools(git, options.logger),
-    stopWhen: stepCountIs(options.steps ?? 1000),
-
-    system: options.system ?? buildSystemPrompt(),
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: 'Here are the commits related to the release:',
-          },
-          {
-            type: 'text',
-            text: markdownCommitsList.trim(),
-          },
-        ],
-      },
-
-      ...(options.instructions
-        ? [{ role: 'user' as const, content: options.instructions }]
-        : []),
-    ],
-  })
-
-  return {
-    note: llmResult.text,
-    output: llmResult.output,
-
-    prev: gitResult.prev,
-    current: gitResult.current,
-    commits: selectedCommits,
-
-    provider: {
-      usage: llmResult.totalUsage,
-      response: llmResult.response,
+  const initialMessages: ModelMessage[] = [
+    {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: 'Here are the commits related to the release:',
+        },
+        {
+          type: 'text',
+          text: markdownCommitsList.trim(),
+        },
+      ],
     },
+
+    ...(options.instructions
+      ? [{ role: 'user' as const, content: options.instructions }]
+      : []),
+  ]
+
+  for (let attempt = 0; attempt <= DEFAULT_GENERATION_RETRIES; attempt++) {
+    const resumeMessages = completedMessages
+    let llmResult: Awaited<ReturnType<typeof generateText>>
+
+    try {
+      llmResult = await generateText({
+        model: provider(options.model),
+
+        temperature: options.temperature,
+        topP: options.topP,
+        topK: options.topK,
+
+        maxRetries: options.maxRetries,
+        maxOutputTokens: options.maxOutputTokens,
+
+        timeout: {
+          totalMs: options.timeout,
+          stepMs: DEFAULT_STEP_TIMEOUT_MS,
+        },
+        toolChoice: options.toolChoice,
+        tools: generateTools(git, options.logger),
+        stopWhen: stepCountIs(options.steps ?? 1000),
+
+        system: options.system ?? buildSystemPrompt(),
+        messages: [...initialMessages, ...resumeMessages],
+        onStepFinish: (step) => {
+          if (step.finishReason === 'tool-calls') {
+            completedMessages = [...resumeMessages, ...step.response.messages]
+          }
+        },
+      })
+    } catch (error) {
+      if (!(error instanceof Error) || error.name !== 'AbortError') {
+        throw error
+      }
+
+      failureReason = 'step timed out'
+      options.logger?.(
+        `Generation attempt ${attempt + 1} failed: ${failureReason}`
+      )
+      continue
+    }
+
+    if (llmResult.finishReason === 'stop') {
+      return {
+        note: llmResult.text,
+        output: llmResult.text,
+
+        prev: gitResult.prev,
+        current: gitResult.current,
+        commits: selectedCommits,
+
+        provider: {
+          usage: llmResult.totalUsage,
+          response: llmResult.response,
+        },
+      }
+    }
+
+    failureReason = `finishReason: "${llmResult.finishReason}", rawFinishReason: "${llmResult.rawFinishReason}"`
+    options.logger?.(
+      `Generation attempt ${attempt + 1} failed: ${failureReason}`
+    )
   }
+
+  throw new Error(
+    `Release note generation failed after ${DEFAULT_GENERATION_RETRIES + 1} attempt(s) (${failureReason})`
+  )
 }
