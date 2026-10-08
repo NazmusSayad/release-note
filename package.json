@@ -14,7 +14,11 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "bin": {
-    "release-note": "./dist/bin.mjs"
+    "release-note": "dist/bin.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NazmusSayad/release-note.git"
   },
   "exports": {
     ".": {
